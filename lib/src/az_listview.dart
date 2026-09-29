@@ -28,6 +28,7 @@ class AzListView extends StatefulWidget {
     this.indexBarAlignment = Alignment.centerRight,
     this.indexBarMargin,
     this.indexBarOptions = const IndexBarOptions(),
+    this.skipLastIndexJumpAtBottom = false,
   }) : super(key: key);
 
   /// with  ISuspensionBean Data
@@ -93,6 +94,9 @@ class AzListView extends StatefulWidget {
   /// IndexBar options.
   final IndexBarOptions indexBarOptions;
 
+  /// Preserve the bottom position when the last index is selected.
+  final bool skipLastIndexJumpAtBottom;
+
   @override
   _AzListViewState createState() => _AzListViewState();
 }
@@ -143,6 +147,17 @@ class _AzListViewState extends State<AzListView> {
   }
 
   void _scrollTopIndex(String tag) {
+    if (widget.skipLastIndexJumpAtBottom &&
+        widget.indexBarData.isNotEmpty &&
+        tag == widget.indexBarData.last &&
+        widget.itemCount > 0) {
+      final lastPositions = itemPositionsListener.itemPositions.value.where(
+        (position) => position.index == widget.itemCount - 1,
+      );
+      if (lastPositions.any((position) => position.itemTrailingEdge <= 1.001)) {
+        return;
+      }
+    }
     int index = _getIndex(tag);
     if (index != -1) {
       itemScrollController.jumpTo(index: index);
